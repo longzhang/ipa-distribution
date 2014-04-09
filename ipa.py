@@ -29,7 +29,6 @@ try:
 except ImportError:
     from StringIO import StringIO
  
-#itms-services://?action=download-manifest&url=http://192.168.1.22/static/memeyu.plist 
 
 class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
  
@@ -142,14 +141,6 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         path = self.translate_path(self.path)
         ctype = self.guess_type(path)
         f = None
-        if self.path.endswith('.restart'):
-            os.system('/opt/sites/buyu_backend/web_api/restart.sh')
-            self.send_response(200)
-            self.send_header("Content-type", ctype)
-            self.end_headers()
-            f = StringIO()
-            f.write('restart success!!')
-            return
 
         if self.path.endswith('_itunes'):
             self.send_response(200)
