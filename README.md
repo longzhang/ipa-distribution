@@ -1,3 +1,4 @@
+wget https://raw.githubusercontent.com/longzhang/ipa-distribution/master/ipa.py<br>
 python ipa.py <br>
 or python ipa.py 8000 <br>
 
