@@ -12,6 +12,7 @@ use safari to visit http://yourhost:port  and click ios_download .  <br>
 you will install ipa on your iphone .  <br> 
 
 #启动方式
+wget https://raw.githubusercontent.com/longzhang/ipa-distribution/master/ipa.py<br>
 执行 python ipa.py 默认80端口<br>
 执行 python ipa.py 8000 端口号可以自己定义<br>
 建议使用 nohub 来启动一个后台守护进程 <br>
