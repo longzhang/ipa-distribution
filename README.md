@@ -20,3 +20,6 @@ nohup python ipa.py 8000 & <br>
 #下载方式
 使用iphone的safari浏览器打开http://IP地址：端口 <br>
 然后可以上传ipa安装包，使用ios设备点击IOS download 可以直接在手机上安装ipa <br>
+
+
+
