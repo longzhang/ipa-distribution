@@ -12,23 +12,32 @@ __author__ = "long.zhang@rekoo.com"
 __home_page__ = ""
  
 import os
-import posixpath
-import BaseHTTPServer
-from BaseHTTPServer import HTTPServer , BaseHTTPRequestHandler
-import urllib
-import cgi
-import shutil
-import mimetypes
 import re
-from SocketServer import ThreadingMixIn
-import threading
+import cgi
 import sys
-port = None
+import ssl
+import shutil
+import urllib
+import mimetypes
+import posixpath
+import threading
+import BaseHTTPServer, SimpleHTTPServer
+from SocketServer import ThreadingMixIn
+from BaseHTTPServer import HTTPServer , BaseHTTPRequestHandler
+
+# your app name displayed when ipa installed
+app_name = '搭积木-积木别倒'
+
+# your bundleid which match your iOS developer enterprice certification
+app_bundle_id = 'com.ylmf.JMProject.inhouse'
+
+# your https certification which issued by a trusted CA.
+certfile = '../inhouse_yuzebin_com.pem'
+
 try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
- 
 
 class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
  
@@ -156,8 +165,8 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header("Content-type", ctype)
             #self.send_header("Content-type", "application/x-www-form-urlencoded")
             self.end_headers()
-            ipa_url = 'http://%s/%s.ipa' % (self.host , ipa_name)
-            plist_content = make_plist_content(ipa_url , ipa_name)
+            ipa_url = 'https://%s/%s.ipa' % (self.host , ipa_name)
+            plist_content = make_plist_content(ipa_url , app_bundle_id, ipa_name)
             f.write(plist_content)
             print 'plist content ' , plist_content
             f.seek(0)
@@ -239,7 +248,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             f.write('<li><a href="%s">%s</a>\n'
                     % (urllib.quote(linkname), cgi.escape(displayname)))
             if name.endswith('ipa'):
-                url = 'itms-services://?action=download-manifest&url=http://%s/%s.plist' % ( self.host , cgi.escape(displayname).split('.')[0] )
+                url = 'itms-services://?action=download-manifest&url=https://%s/%s.plist' % ( self.host , cgi.escape(displayname).split('.')[0] )
                 to_write = '<a href="%s">ios download</a>'
                 to_write = to_write % (url)
                 f.write(to_write )
@@ -333,64 +342,58 @@ def test(HandlerClass = SimpleHTTPRequestHandler, ServerClass = BaseHTTPServer.H
     print server
     print 'ready start'
     server.serve_forever()
+
+def inhouse(HandlerClass = SimpleHTTPRequestHandler, ServerClass = BaseHTTPServer.HTTPServer):
+    #httpd = BaseHTTPServer.HTTPServer((host, port), SimpleHTTPServer.SimpleHTTPRequestHandler)
+    httpd = ThreadHTTPServer(('0.0.0.0',port), HandlerClass)
+    httpd.socket = ssl.wrap_socket(httpd.socket, certfile=certfile, server_side=True)
     
-def make_plist_content(ipa_url , name): 
+    print httpd
+    print 'ready start'
+    httpd.serve_forever()
+    
+def make_plist_content(ipa_url, bundleid=app_bundle_id, name=app_name): 
     plist_content="""<?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-       <key>items</key>
-       <array>
-           <dict>
-               <key>assets</key>
-               <array>
-                   <dict>
-                       <key>kind</key>
-                       <string>software-package</string>
-                       <key>url</key>
-                       <string>%s</string>
-                   </dict>
-                   <dict>
-                       <key>kind</key>
-                       <string>display-image</string>
-                       <key>needs-shine</key>
-                       <true/>
-                       <key>url</key>
-                       <string>http://a4.mzstatic.com/us/r30/Purple4/v4/70/61/05/70610526-8929-0092-b95d-8a8e5f8410c6/mzl.ucghkxxu.175x175-75.jpg</string>
-                   </dict>
-               <dict>
-                       <key>kind</key>
-                       <string>full-size-image</string>
-                       <key>needs-shine</key>
-                       <true/>
-                       <key>url</key>
-                       <string>http://a4.mzstatic.com/us/r30/Purple4/v4/70/61/05/70610526-8929-0092-b95d-8a8e5f8410c6/mzl.ucghkxxu.175x175-75.jpg</string>
-                   </dict>
-               </array><key>metadata</key>
-               <dict>
-                   <key>bundle-identifier</key>
-                   <string>com.rekoo.fishingcube91</string>
-                   <key>bundle-version</key>
-                   <string>1.0</string>
-                   <key>kind</key>
-                   <string>software</string>
-                   <key>subtitle</key>
-                   <string>%s</string>
-                   <key>title</key>
-                   <string>%s</string>
-               </dict>
-           </dict>
-       </array>
-    </dict>
-    </plist>
-    
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>items</key>
+    <array>
+        <dict>
+            <key>assets</key>
+            <array>
+                <dict>
+                    <key>kind</key>
+                    <string>software-package</string>
+                    <key>url</key>
+                    <string>%s</string>
+                </dict>
+            </array>
+            <key>metadata</key>
+            <dict>
+                <key>bundle-identifier</key>
+                <string>%s</string>
+                <key>bundle-version</key>
+                <string>1.2</string>
+                <key>kind</key>
+                <string>software</string>
+                <key>subtitle</key>
+                <string>%s</string>
+                <key>title</key>
+                <string>%s</string>
+            </dict>
+        </dict>
+    </array>
+</dict>
+</plist>
     """
-    return plist_content % ( ipa_url , name , name)
+    return plist_content % (ipa_url, bundleid, name, name)
 if __name__ == '__main__':
     try: 
 	port = sys.argv[1]
     except:
-        port = 80
+        port = 443
 
     port = int(port)
-    test()
+    #test()
+    inhouse()
