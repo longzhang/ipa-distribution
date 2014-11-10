@@ -24,7 +24,9 @@ import threading
 import BaseHTTPServer, SimpleHTTPServer
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer , BaseHTTPRequestHandler
-
+import gevent
+from gevent import monkey
+monkey.patch_all()
 # your app name displayed when ipa installed
 app_name = '搭积木-积木别倒'
 
@@ -297,7 +299,9 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         to copy binary data as well.
  
         """
-        shutil.copyfileobj(source, outputfile)
+        gi = gevent.spawn(shutil.copyfileobj,source,outputfile)
+        gevent.joinall([gi])
+        #shutil.copyfileobj(source, outputfile)
  
     def guess_type(self, path):
         """Guess the type of a file.
